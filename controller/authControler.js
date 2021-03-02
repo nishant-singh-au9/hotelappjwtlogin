@@ -116,6 +116,7 @@ router.post("/addbooking", (req, res) => {
         date: req.body.date,
         city: req.body.city,
         status: "Pending",
+        phone: req.body.phone,
         bookeremail: req.body.bookeremail
       };
 

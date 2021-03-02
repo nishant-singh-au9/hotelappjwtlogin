@@ -7,6 +7,7 @@ let BookingSchema = new mongoose.Schema({
     date: String,
     city: String,
     status: String,
+    phone:String,
     bookeremail: String
 })
 
