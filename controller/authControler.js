@@ -110,6 +110,7 @@ router.post("/addbooking", (req, res) => {
     User.findById(data.id, { password: 0 }, (err, result) => {
         const booking = {
         hotel: req.body.hotel,
+        hotelid: req.body.hotelid,
         price: req.body.price,
         name: req.body.name,
         date: req.body.date,
@@ -118,7 +119,7 @@ router.post("/addbooking", (req, res) => {
         bookeremail: req.body.bookeremail
       };
 
-      Booking.create((booking), (err, res) => {
+      Booking.create((booking), (err, resp) => {
           if(err) throw err
           return res.send({booking : true, message : "Booking Successfull"})
       })
@@ -126,6 +127,7 @@ router.post("/addbooking", (req, res) => {
 });
 })
 
+//get all bookings
 router.get("/allbookings", (req, res) => {
     let token = req.headers["x-access-token"];
     if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
@@ -143,6 +145,133 @@ router.get("/allbookings", (req, res) => {
     })
 })
 })
+
+//get all pending bookings of hotel
+// router.get("/pendingbookings", (req, res) => {
+//     let token = req.headers["x-access-token"];
+//     if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+//     jwt.verify(token, config.secret, (err, data) => {
+//     if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+//     User.findById(data.id, { password: 0 }, (err, result) => {
+//         if(result.role !== "Admin"){
+//             return res.send({error : "you are not admin"})
+//         }else{
+//             Booking.find({status: "Pending", hotel: req.body.hotelid}, (err, bookings) => {
+//                 if(err) return res.send({error : "cannot get bookings"})
+//                 return res.send(bookings)
+//             })
+//         }
+//     })
+// })
+// })
+
+
+//get all pending bookings
+router.get("/pendingbookings", (req, res) => {
+    let token = req.headers["x-access-token"];
+    if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+    jwt.verify(token, config.secret, (err, data) => {
+    if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+    User.findById(data.id, { password: 0 }, (err, result) => {
+        if(result.role !== "Admin"){
+            return res.send({error : "you are not admin"})
+        }else{
+            Booking.find({status: "Pending"}, (err, bookings) => {
+                if(err) return res.send({error : "cannot get bookings"})
+                return res.send(bookings)
+            })
+        }
+    })
+})
+})
+
+
+//get all confirmed bookings
+router.get("/confirmedbookings", (req, res) => {
+    let token = req.headers["x-access-token"];
+    if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+    jwt.verify(token, config.secret, (err, data) => {
+    if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+    User.findById(data.id, { password: 0 }, (err, result) => {
+        if(result.role !== "Admin"){
+            return res.send({error : "you are not admin"})
+        }else{
+            Booking.find({status: "Confirmed"}, (err, bookings) => {
+                if(err) return res.send({error : "cannot get bookings"})
+                return res.send(bookings)
+            })
+        }
+    })
+})
+})
+
+
+//update booking status
+router.put("/updatebooking", (req, res) => {
+    let token = req.headers["x-access-token"];
+    if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+    jwt.verify(token, config.secret, (err, data) => {
+    if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+    User.findById(data.id, { password: 0 }, (err, result) => {
+        if(result.role !== "Admin"){
+            return res.send({error : "you are not admin"})
+        }else{
+            Booking.updateOne({_id: req.body._id}, {status: req.body.status} ,(err, bookings) => {
+                if(err) return res.send({error : "cannot get bookings"})
+                return res.send({succ: `Booking Updated to ${req.body.status}`})
+            })
+        }
+    })
+})
+})
+
+
+//get all booking of current user
+router.get("/yourbookings", (req, res) => {
+    let token = req.headers["x-access-token"];
+    if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+    jwt.verify(token, config.secret, (err, data) => {
+    if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+    User.findById(data.id, { password: 0 }, (err, result) => {
+    Booking.find({bookeremail: result.email}, (err, bookings) => {
+        if(err) return res.send({error : "cannot get bookings"})
+        return res.send(bookings)
+        })
+    })
+})
+})
+
+
+//get all confirmed bookings of current user
+router.get("/yourcnfbookings", (req, res) => {
+    let token = req.headers["x-access-token"];
+    if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+    jwt.verify(token, config.secret, (err, data) => {
+    if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+    User.findById(data.id, { password: 0 }, (err, result) => {
+    Booking.find({bookeremail: result.email, status: "Confirmed"}, (err, bookings) => {
+        if(err) return res.send({error : "cannot get bookings"})
+        return res.send(bookings)
+        })
+    })
+})
+})
+
+//get all pending bookings of current user
+router.get("/yourpenbookings", (req, res) => {
+    let token = req.headers["x-access-token"];
+    if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+    jwt.verify(token, config.secret, (err, data) => {
+    if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+    User.findById(data.id, { password: 0 }, (err, result) => {
+    Booking.find({bookeremail: result.email, status: "Pending"}, (err, bookings) => {
+        if(err) return res.send({error : "cannot get bookings"})
+        return res.send(bookings)
+        })
+    })
+})
+})
+
 
 
 module.exports = router;
