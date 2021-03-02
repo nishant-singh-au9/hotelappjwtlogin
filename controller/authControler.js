@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const config = require("../config");
 const User = require("../model/userModel");
+const Booking = require("../model/bookingModel");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -31,8 +32,7 @@ router.post("/register", (req, res) => {
           password: hash,
           email: req.body.email,
           role: req.body.role ? req.body.role : "User",
-          isActive: true,
-          bookings: [],
+          isActive: true
         },
         (err, user) => {
           if (err) return res.status(500).send("error while registering");
@@ -100,7 +100,7 @@ router.put("/updatePassword", (req, res) => {
 
 //addbooking
 
-router.put("/addbooking", (req, res) => {
+router.post("/addbooking", (req, res) => {
   let token = req.headers["x-access-token"];
   if (!token)
     return res.status(500).send({ auth: false, error: "No token provided" });
@@ -108,29 +108,41 @@ router.put("/addbooking", (req, res) => {
     if (err)
       return res.status(500).send({ auth: false, error: "Invalid Token" });
     User.findById(data.id, { password: 0 }, (err, result) => {
-      let curbookings = result.bookings;
-      const booking = {
+        const booking = {
         hotel: req.body.hotel,
         price: req.body.price,
         name: req.body.name,
         date: req.body.date,
         city: req.body.city,
-        status: "Confirmed",
+        status: "Pending",
+        bookeremail: req.body.bookeremail
       };
 
-      curbookings.push(booking);
-      console.log(curbookings);
-
-      User.updateOne(
-        { _id: data.id },
-        { bookings: curbookings },
-        (err, result) => {
-          if (err) throw err;
-          return res.send("booking successfull");
-        }
-      );
-    });
+      Booking.create((booking), (err, res) => {
+          if(err) throw err
+          return res.send({booking : true, message : "Booking Successfull"})
+      })
   });
 });
+})
+
+router.get("/allbookings", (req, res) => {
+    let token = req.headers["x-access-token"];
+    if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+    jwt.verify(token, config.secret, (err, data) => {
+    if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+    User.findById(data.id, { password: 0 }, (err, result) => {
+        if(result.role !== "Admin"){
+            return res.send({error : "you are not admin"})
+        }else{
+            Booking.find({}, (err, bookings) => {
+                if(err) return res.send({error : "cannot get bookings"})
+                return res.send(bookings)
+            })
+        }
+    })
+})
+})
+
 
 module.exports = router;

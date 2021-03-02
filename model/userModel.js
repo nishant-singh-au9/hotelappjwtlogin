@@ -4,8 +4,7 @@ let UserSchema = new mongoose.Schema({
     email : String,
     password : String,
     role : String,
-    isActive : Boolean,
-    bookings : Array
+    isActive : Boolean
 })
 
 mongoose.model('users', UserSchema)
