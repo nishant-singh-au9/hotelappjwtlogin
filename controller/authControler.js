@@ -119,7 +119,8 @@ router.post("/addbooking", (req, res) => {
         phone: req.body.phone,
         bookeremail: req.body.bookeremail
       };
-
+      console.log(booking)
+      console.log(token)
       Booking.create((booking), (err, resp) => {
           if(err) throw err
           return res.send({booking : true, message : "Booking Successfull"})
@@ -270,6 +271,21 @@ router.get("/yourpenbookings", (req, res) => {
         return res.send(bookings)
         })
     })
+})
+})
+
+//get all cancelled bookings of current user
+router.get("/yourpenbookings", (req, res) => {
+  let token = req.headers["x-access-token"];
+  if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
+  jwt.verify(token, config.secret, (err, data) => {
+  if (err) return res.status(500).send({ auth: false, error: "Invalid Token" });
+  User.findById(data.id, { password: 0 }, (err, result) => {
+  Booking.find({bookeremail: result.email, status: "Cancelled"}, (err, bookings) => {
+      if(err) return res.send({error : "cannot get bookings"})
+      return res.send(bookings)
+      })
+  })
 })
 })
 
