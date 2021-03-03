@@ -275,7 +275,7 @@ router.get("/yourpenbookings", (req, res) => {
 })
 
 //get all cancelled bookings of current user
-router.get("/yourpenbookings", (req, res) => {
+router.get("/yourcanbookings", (req, res) => {
   let token = req.headers["x-access-token"];
   if (!token) return res.status(500).send({ auth: false, error: "No token provided" });
   jwt.verify(token, config.secret, (err, data) => {
